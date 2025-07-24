@@ -60,19 +60,6 @@
       text-align: center;
     }
 
-    .device-header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: bold;
-      gap: 10px;
-      padding: 0 10px;
-    }
-
-    .device-header span {
-      flex: 1;
-      min-width: 100px;
-    }
-
     .device-row {
       display: flex;
       flex-wrap: wrap;
@@ -132,13 +119,11 @@
     }
 
     @media (max-width: 600px) {
-      .device-header,
       .device-row,
       .controls {
         flex-direction: column;
       }
 
-      .device-header span,
       .device-row input,
       .device-row select,
       .device-row button {
@@ -159,11 +144,7 @@
       <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
     </div>
     <h2>🌞 Solar Load Calculator</h2>
-    <div class="device-header">
-      <span>Appliance</span>
-      <span>Hours</span>
-      <span>Quantity</span>
-    </div>
+    <!-- Removed device-header here -->
     <div id="devices"></div>
     <div class="controls">
       <button class="btn-secondary" onclick="addDevice()">➕ Add Device</button>
@@ -204,9 +185,10 @@
       row.className = 'device-row';
 
       const idSuffix = deviceIndex;
-      const options = Object.keys(applianceOptions).map(appl =>
-        `<option value="${appl}" ${appl === name ? 'selected' : ''}>${appl}</option>`
-      ).join('');
+      const options = [`<option value="" disabled ${!name ? 'selected' : ''}>Select Appliances</option>`]
+        .concat(Object.keys(applianceOptions).map(appl =>
+          `<option value="${appl}" ${appl === name ? 'selected' : ''}>${appl}</option>`
+        )).join('');
 
       row.innerHTML = `
         <select id="device${idSuffix}-name">
@@ -242,6 +224,8 @@
         if (!nameElem || !hoursElem || !qtyElem) continue;
 
         const name = nameElem.value;
+        if (!name) continue; // Skip if placeholder or nothing selected
+
         const customName = customNameElem && customNameElem.style.display === 'block' ? customNameElem.value : name;
         const hours = parseFloat(hoursElem.value);
         const qty = parseInt(qtyElem.value);
@@ -251,6 +235,12 @@
 
         totalWh += customWatt * hours * qty;
         devices.push({ name: customName, wattage: customWatt, quantity: qty });
+      }
+
+      if (totalWh === 0) {
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerHTML = `<p style="color:red;">Please enter valid appliance data to calculate load.</p>`;
+        return;
       }
 
       const inverterData = calculateInverterSize(devices);
@@ -286,7 +276,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      const preload = ["TV", "Light", "Fan", "Fridge", "Desktop Computer", "AC"];
+      const preload = ["", "Light", "Fan", "Fridge", "Desktop Computer", "AC"];
       preload.forEach(name => addDevice(name, '', ''));
     });
   </script>
