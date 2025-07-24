@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -13,6 +13,7 @@
       --light: #ffffff;
       --dark: #1e1e1e;
     }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -39,12 +40,8 @@
       align-items: center;
       justify-content: space-between;
     }
-    .logo {
-      max-height: 80px;
-    }
-    h2 {
-      text-align: center;
-    }
+    .logo { max-height: 80px; }
+    h2 { text-align: center; }
     .device-row {
       display: flex;
       flex-wrap: wrap;
@@ -55,15 +52,30 @@
       flex: 1;
       padding: 10px;
       font-size: 14px;
+      min-width: 120px;
+    }
+    .device-header {
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 10px;
+      padding: 0 10px;
+    }
+    .device-header span {
+      flex: 1;
+      min-width: 120px;
     }
     .result {
       margin-top: 30px;
       padding: 20px;
-      background: #e8f6f3;
+      background: linear-gradient(145deg, #e8fff7, #ccf3e7);
       border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      border: 1px solid #18bc9c;
     }
     .dark-mode .result {
-      background: #333;
+      background: #444;
     }
     button {
       padding: 10px 20px;
@@ -75,61 +87,94 @@
     .btn-primary { background-color: var(--secondary); color: #fff; }
     .btn-secondary { background-color: #f39c12; color: #fff; }
     .btn-danger { background-color: #e74c3c; color: #fff; }
-    .controls { display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 600px) {
+      .device-header span, .device-row input, .device-row select {
+        flex: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <img src="FB_IMG_1728930059328~2_1.jpg" class="logo" alt="Company Logo">
-      <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
-    </div>
-    <h2>🌞 Solar Load Calculator</h2>
-    <div id="devices"></div>
-    <div class="controls">
-      <button class="btn-secondary" onclick="addDevice()">➕ Add Device</button>
-      <button class="btn-primary" onclick="calculateLoad()">⚡ Calculate</button>
-      <button onclick="window.print()">🖨️ Print / PDF</button>
-      <a href="https://wa.me/234XXXXXXXXXX" target="_blank" class="btn-primary">💬 WhatsApp Quote</a>
-    </div>
-    <div class="result" id="result" style="display:none;"></div>
+<div class="container">
+  <div class="header">
+    <img src="FB_IMG_1728930059328~2_1.jpg" class="logo" alt="Company Logo">
+    <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
   </div>
+  <h2>🌞 Solar Load Calculator</h2>
+  <div class="device-header">
+    <span>Appliance</span>
+    <span>Hours</span>
+    <span>Quantity</span>
+  </div>
+  <div id="devices"></div>
+  <div class="controls">
+    <button class="btn-secondary" onclick="addDevice()">➕ Add Device</button>
+    <button class="btn-primary" onclick="calculateLoad()">⚡ Calculate</button>
+    <button onclick="window.print()">🖨️ Print / PDF</button>
+    <a href="https://wa.me/234XXXXXXXXXX" target="_blank" class="btn-primary">💬 WhatsApp Quote</a>
+  </div>
+  <div class="result" id="result" style="display:none;"></div>
+</div>
 
 <script>
 let deviceIndex = 0;
 const applianceOptions = {
-  "Internal Light": 12,
-  "Freezer": 300,
-  "Fans": 85,
   "TV": 100,
-  "Computer": 200,
-  "Laptop": 60,
-  "Water dispenser": 500,
-  "Ceiling Fan": 80,
-  "Cake display": 350,
-  "Pump": 746,
-  "1hp AC": 850,
+  "Light": 12,
+  "Fan": 85,
+  "AC": 850,
   "Inverter AC": 1200,
+  "Fridge": 100,
+  "Desktop Computer": 200,
+  "Freezer": 300,
+  "Water Dispenser": 500,
+  "Ceiling Fan": 80,
+  "Pump": 746,
+  "Laptop": 60,
   "Printer": 500,
-  "Water heater": 1500,
-  "Gas oven": 3000,
-  "Fridge": 100
+  "Water Heater": 1500,
+  "Gas Oven": 3000,
+  "Cake Display": 350
 };
 
 function toggleDarkMode() {
   document.body.classList.toggle('dark-mode');
 }
 
-function addDevice(name = "Fans", hours = '', qty = '') {
+function addDevice(name = '', hours = '', qty = '', isCustom = false) {
   const row = document.createElement('div');
   row.className = 'device-row';
-  const options = Object.keys(applianceOptions).map(appl => `<option value="${appl}" ${appl === name ? 'selected' : ''}>${appl}</option>`).join('');
+
+  const idSuffix = deviceIndex;
+
+  const options = Object.keys(applianceOptions).map(appl =>
+    `<option value="${appl}" ${appl === name ? 'selected' : ''}>${appl}</option>`
+  ).join('');
+
   row.innerHTML = `
-    <select id="device${deviceIndex}-name">${options}</select>
-    <input type="number" placeholder="Hours/day" value="${hours}" id="device${deviceIndex}-hours">
-    <input type="number" placeholder="Qty" value="${qty}" id="device${deviceIndex}-qty">
+    <select id="device${idSuffix}-name">
+      ${options}<option value="Custom" ${name === 'Custom' ? 'selected' : ''}>Custom</option>
+    </select>
+    <input type="text" placeholder="Custom Name" id="device${idSuffix}-customname" value="${isCustom ? name : ''}" style="display:${name === 'Custom' ? 'block' : 'none'}">
+    <input type="number" placeholder="Hours" value="${hours}" id="device${idSuffix}-hours">
+    <input type="number" placeholder="Qty" value="${qty}" id="device${idSuffix}-qty">
+    <input type="number" placeholder="Wattage" id="device${idSuffix}-watt" style="display:${isCustom ? 'block' : 'none'}">
     <button class="btn-danger" onclick="this.parentElement.remove()">❌</button>
   `;
+
+  row.querySelector(`#device${idSuffix}-name`).addEventListener('change', function () {
+    const isCustom = this.value === 'Custom';
+    row.querySelector(`#device${idSuffix}-watt`).style.display = isCustom ? 'block' : 'none';
+    row.querySelector(`#device${idSuffix}-customname`).style.display = isCustom ? 'block' : 'none';
+  });
+
   document.getElementById('devices').appendChild(row);
   deviceIndex++;
 }
@@ -137,92 +182,64 @@ function addDevice(name = "Fans", hours = '', qty = '') {
 function calculateLoad() {
   let totalWh = 0;
   let devices = [];
-  let maxHour = 0;
-
   for (let i = 0; i < deviceIndex; i++) {
     const nameElem = document.getElementById(`device${i}-name`);
-    const hours = parseFloat(document.getElementById(`device${i}-hours`)?.value);
-    const qty = parseInt(document.getElementById(`device${i}-qty`)?.value);
-    if (!nameElem || isNaN(hours) || isNaN(qty)) continue;
+    const hoursElem = document.getElementById(`device${i}-hours`);
+    const qtyElem = document.getElementById(`device${i}-qty`);
+    const wattElem = document.getElementById(`device${i}-watt`);
+    const customNameElem = document.getElementById(`device${i}-customname`);
+
+    if (!nameElem || !hoursElem || !qtyElem) continue;
+
     const name = nameElem.value;
-    const watt = applianceOptions[name] || 100;
-    totalWh += watt * hours * qty;
-    devices.push({ name, wattage: watt, quantity: qty });
-    if (hours > maxHour) maxHour = hours;
+    const customName = customNameElem && customNameElem.style.display === 'block' ? customNameElem.value : name;
+    const hours = parseFloat(hoursElem.value);
+    const qty = parseInt(qtyElem.value);
+    const customWatt = wattElem && wattElem.style.display === 'block' ? parseFloat(wattElem.value) : applianceOptions[name];
+
+    if (isNaN(hours) || isNaN(qty) || isNaN(customWatt)) continue;
+
+    totalWh += customWatt * hours * qty;
+    devices.push({ name: customName, wattage: customWatt, quantity: qty });
   }
 
   const inverterData = calculateInverterSize(devices);
   const panelWattage = (totalWh * 1.2) / 3.4;
-  const roundedPanel = Math.ceil(panelWattage / 100) * 100; // round to nearest 100W
+  const roundedPanel = Math.ceil(panelWattage / 100) * 100;
   const panel = `${roundedPanel}W`;
-// Battery calculation logic
-const usableKWh = (totalWh / 1000) * 0.8; // Assume 80% usable energy from batteries
-const agmUnitKWh = 2; // Each 12V 200Ah AGM battery ≈ 2 kWh usable
-const agmOptions = [2, 4, 8]; // Only support 2, 4, or 8 pcs AGM
+  const batterySizeWh = (totalWh / 0.85) * 2 * 0.8;
+  const batteryKWh = Math.ceil(batterySizeWh / 1000 / 5) * 5;
 
-let batteryText = '';
-let agmQty = agmOptions.find(n => n * agmUnitKWh >= usableKWh);
-
-if (agmQty) {
-  const agmKWh = agmQty * agmUnitKWh;
-  let lithiumHint = "";
-
-  if (agmQty === 4) lithiumHint = " (or 7.5 kWh Lithium)";
-  if (agmQty === 8) lithiumHint = " (or 15 kWh Lithium)";
-
-  batteryText = `<strong>AGM Batteries:</strong> ${agmQty} × 12V 200Ah (≈ ${agmKWh} kWh usable)${lithiumHint}`;
-} else {
-  // AGM not sufficient – recommend lithium only
-  const lithiumMap = [
-    { size: "5 kWh", max: 5 },
-    { size: "7.5 kWh", max: 7.5 },
-    { size: "10 kWh", max: 10 },
-    { size: "15 kWh", max: 15 }
-  ];
-  const lithiumMatch = lithiumMap.find(b => usableKWh <= b.max);
-  const lithiumText = lithiumMatch ? lithiumMatch.size : "15+ kWh";
-
-  batteryText = `<strong>Recommended Battery:</strong> ${lithiumText} Lithium Battery (AGM not sufficient)`;
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').innerHTML = `
+    <h3 style="color: #18bc9c;">🔋 Recommended Solar System</h3>
+    <ul>
+      <li><strong>Total Load:</strong> ⚡ ${totalWh.toFixed(1)} Wh/day</li>
+      <li><strong>Inverter Size:</strong> 🔌 ${inverterData.suggestedInverter} (${inverterData.requiredInverterWatts.toFixed(1)} W)</li>
+      <li><strong>Solar Panel:</strong> 🌞 ${panel}</li>
+      <li><strong>Battery Bank:</strong> 🔋 ${batteryKWh} kWh (Lithium Recommended)</li>
+    </ul>
+    <p style="color: #555; font-style: italic;">📌 Note: Estimated values based on typical usage. Actual performance may vary.</p>
+  `;
 }
-document.getElementById('result').style.display = 'block';
 
-document.getElementById('result').innerHTML = `
-  <h3>🔋 Recommended Solar System</h3>
-  <p><strong>Total Load (Wh/day):</strong> ${totalWh.toFixed(1)} Wh</p>
-  <p><strong>Inverter:</strong> ${inverterData.suggestedInverter} (${inverterData.requiredInverterWatts.toFixed(1)} W)</p>
-  <p><strong>Solar Panel Size:</strong> ${panel}</p>
-  <p>${batteryText}</p>
-`;
-
-}
 function calculateInverterSize(devices, safetyMargin = 1.3) {
-  let totalLoad = 0;
-  devices.forEach(device => {
-    totalLoad += device.wattage * device.quantity;
-  });
+  let totalLoad = devices.reduce((sum, d) => sum + d.wattage * d.quantity, 0);
   const inverterSizeWatts = totalLoad * safetyMargin;
-  let suggestedSize;
-  if (inverterSizeWatts <= 800) suggestedSize = '1kVA';
-  else if (inverterSizeWatts <= 1200) suggestedSize = '1.5kVA';
-  else if (inverterSizeWatts <= 1600) suggestedSize = '2kVA';
-  else if (inverterSizeWatts <= 3000) suggestedSize = '3kVA';
-  else if (inverterSizeWatts <= 5000) suggestedSize = '5kVA';
-  else if (inverterSizeWatts <= 7500) suggestedSize = '7.5kVA';
-  else suggestedSize = '10kVA+';
-
+  let sizes = [1, 1.5, 2, 3, 5, 7.5, 10, 20];
+  let suggested = sizes.find(size => inverterSizeWatts <= size * 1000) || '20+';
   return {
     totalLoadWatts: totalLoad,
     requiredInverterWatts: inverterSizeWatts,
-    suggestedInverter: suggestedSize
+    suggestedInverter: suggested + ' kVA'
   };
 }
-window.onload = () => {
-  document.getElementById('devices').innerHTML = ''; // Clear any existing
-  deviceIndex = 0; // Reset index to avoid ID conflicts
-  addDevice("Fans", 1, 0);           // Default Fans
-  addDevice("Internal Light", 2, 0); // Default Internal Light
-};
 
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const preload = ["TV", "Light", "Fan", "Fridge", "Desktop Computer", "AC"];
+    preload.forEach(name => addDevice(name, 0, 0));
+  });
 </script>
 </body>
 </html>
