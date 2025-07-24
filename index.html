@@ -247,7 +247,9 @@
       const panelWattage = (totalWh * 1.2) / 3.4;
       const roundedPanel = Math.ceil(panelWattage / 100) * 100;
       const panel = `${roundedPanel}W`;
-      const batterySizeWh = (totalWh / 0.85) * 2 * 0.8;
+
+      // Updated battery size calculation:
+      const batterySizeWh = (totalWh / 0.85) * 1 * 0.8;
       const batteryKWh = Math.ceil(batterySizeWh / 1000 / 5) * 5;
 
       document.getElementById('result').style.display = 'block';
