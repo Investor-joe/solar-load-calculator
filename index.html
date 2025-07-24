@@ -94,11 +94,46 @@
       margin-top: 15px;
       flex-wrap: wrap;
     }
-    @media (max-width: 600px) {
-      .device-header span, .device-row input, .device-row select {
-        flex: 100%;
-      }
-    }
+   @media (max-width: 600px) {
+  .device-row,
+  .device-header {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .device-header span,
+  .device-row input,
+  .device-row select,
+  .device-row button {
+    flex: 100%;
+    min-width: 100%;
+  }
+
+  .controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .logo {
+    max-height: 50px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
   </style>
 </head>
 <body>
